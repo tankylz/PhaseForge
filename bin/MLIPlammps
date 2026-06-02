@@ -6,12 +6,12 @@ set final_temperature = ""
 set norun = 0
 
 foreach arg ($argv)
-    if (`echo "$arg" | grep -q "^-mlip="; echo $?` == 0) then
-        set mlip_name = `expr "$arg" : '-mlip=\(.*\)'`
-    else if (`echo "$arg" | grep -q "^-model="; echo $?` == 0) then
-        set model_name = `expr "$arg" : '-model=\(.*\)'`
-    else if (`echo "$arg" | grep -q "^-temp="; echo $?` == 0) then
-        set final_temperature = `expr "$arg" : '-temp=\(.*\)'`
+    if ("$arg" =~ [-]mlip=*) then
+        set mlip_name = `echo "$arg" | sed 's/^-mlip=//'`
+    else if ("$arg" =~ [-]model=*) then
+        set model_name = `echo "$arg" | sed 's/^-model=//'`
+    else if ("$arg" =~ [-]temp=*) then
+        set final_temperature = `echo "$arg" | sed 's/^-temp=//'`
     else if ("$arg" == "-nr") then
         set norun = 1
     endif

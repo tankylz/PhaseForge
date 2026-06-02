@@ -110,7 +110,7 @@ foreach phase ($lattice)
     foreach file (`find . -name str.out`)
       set dir = `dirname $file`
       if (! -e $dir/vasp.wrap) then
-        cat > $dir/vasp.wrap << 'WRAPEOF'
+        cat > $dir/vasp.wrap << WRAPEOF
 [INCAR]
 PREC = high
 ISMEAR = 1
