@@ -106,33 +106,20 @@ foreach phase ($lattice)
 
   if ("$phase" == "LIQUID") then
     set md_command = "MLIPliquid -mlip=$mlip -model=$model -dt=50"
+    set phase_dir = `pwd`
 
     foreach file (`find . -name str.out`)
       set dir = `dirname $file`
-      if (! -e $dir/vasp.wrap) then
-        cat > $dir/vasp.wrap << WRAPEOF
-[INCAR]
-PREC = high
-ISMEAR = 1
-SIGMA = 0.1
-NSW=41
-IBRION = 2
-ISIF = 3
-KPPRA = 1000
-USEPOT = PAWPBE
-DOSTATIC
-WRAPEOF
-      endif
-      cd $dir
-      runstruct_vasp -nr
-      cd -
+      cd "$dir"
+      prepare_mlip_structure
+      cd "$phase_dir"
     end
 
     foreach file (`find . -name str.out`)
       set dir = `dirname $file`
-      cd $dir
+      cd "$dir"
       ternary_search -ll=0.7 -ul=1.3 -eps=0.02 -c="$md_command"
-      cd -
+      cd "$phase_dir"
     end
 
     (echo 1,0; echo 2,0) >> terms.in

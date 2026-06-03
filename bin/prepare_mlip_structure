@@ -1,0 +1,59 @@
+#!/bin/bash
+set -euo pipefail
+
+str_file="str.out"
+if [[ -e str_hint.out ]]; then
+    str_file="str_hint.out"
+elif [[ ! -e str.out ]]; then
+    echo "ERROR: str.out or str_hint.out does not exist in $(pwd)" >&2
+    exit 1
+fi
+
+if ! command -v str2poscar >/dev/null 2>&1; then
+    echo "ERROR: str2poscar is not available on PATH" >&2
+    exit 1
+fi
+
+str2poscar < "$str_file" > POSCAR
+
+awk '
+    NR == 6 {
+        nspecies = NF
+        for (i = 1; i <= NF; i++) {
+            species[i] = $i
+        }
+        next
+    }
+    NR == 7 {
+        if (NF != nspecies) {
+            printf "ERROR: POSCAR species/count mismatch in %s\n", FILENAME > "/dev/stderr"
+            exit 1
+        }
+        for (i = 1; i <= NF; i++) {
+            if ($i !~ /^[0-9]+$/) {
+                printf "ERROR: invalid POSCAR atom count: %s\n", $i > "/dev/stderr"
+                exit 1
+            }
+            for (j = 0; j < $i; j++) {
+                print species[i]
+            }
+        }
+        found_counts = 1
+    }
+    END {
+        if (!found_counts) {
+            print "ERROR: could not read POSCAR species and counts" > "/dev/stderr"
+            exit 1
+        }
+    }
+' POSCAR > atomlabel.tmp
+
+if [[ ! -s POSCAR ]]; then
+    echo "ERROR: failed to create POSCAR in $(pwd)" >&2
+    exit 1
+fi
+
+if [[ ! -s atomlabel.tmp ]]; then
+    echo "ERROR: failed to create atomlabel.tmp in $(pwd)" >&2
+    exit 1
+fi
